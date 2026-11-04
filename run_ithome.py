@@ -113,6 +113,8 @@ def main() -> int:
             page = ChromiumPage(options)
             articles = []
             try:
+                # The account frontend formats dates in the browser timezone.
+                page.run_cdp("Emulation.setTimezoneOverride", timezoneId="Asia/Shanghai")
                 log.info("Loading IT early-news account page...")
                 page.get(self.FEED_URL)
                 if not page.ele("css:.post.single .title", timeout=30):
@@ -165,7 +167,7 @@ def main() -> int:
                 page.quit()
             return articles
 
-    log.info("IT early-news adapter v3: supports new-tab and same-tab navigation.")
+    log.info("IT early-news adapter v4: Beijing timestamps and new/same-tab navigation.")
     log.info("Starting Chrome with DrissionPage (no ChromeDriver required).")
     generator = ITHomeAccountGenerator(base_dir=ROOT)
     # Call directly so failures do not silently reuse a stale cache as success.
@@ -174,11 +176,17 @@ def main() -> int:
         if not articles:
             raise RuntimeError("No articles fetched")
         existing = generator.load_cache()
-        merged = generator.merge_articles(articles, existing)[:20]
+        # Refresh existing entries too, so corrected timestamps/content take effect.
+        by_url = {article.url: article for article in existing}
+        by_url.update({article.url: article for article in articles})
+        merged = sorted(by_url.values(), key=lambda article: article.published_at or datetime.min.replace(tzinfo=pytz.UTC), reverse=True)[:20]
         generator.save_cache(merged)
         output = generator.save_feed_streaming(merged)
         # Basic structural validation of the generated artifact.
         import xml.etree.ElementTree as ET
+        xml = output.read_text(encoding="utf-8")
+        xml = xml.replace('<atom:link href="' + generator.FEED_URL + '" rel="self"', '<atom:link href="https://cdn.jsdelivr.net/gh/hspthinking/ForgeRSS@main/feeds/feed_ithome_account_10233.xml" rel="self"')
+        output.write_text(xml, encoding="utf-8")
         items = ET.parse(output).findall("./channel/item")
         if not items or any(not item.findtext("link") or not item.findtext("title") for item in items):
             raise RuntimeError("RSS validation failed")
