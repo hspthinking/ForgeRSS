@@ -48,3 +48,7 @@ jobs:
             git pull --rebase origin main
             git push origin HEAD:main
           fi
+      - name: Refresh RSS CDN cache
+        continue-on-error: true
+        shell: bash
+        run: curl --fail --max-time 30 --retry 2 "https://purge.jsdelivr.net/gh/hspthinking/ForgeRSS@main/feeds/feed_ithome_account_10233.xml"
