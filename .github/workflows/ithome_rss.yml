@@ -8,8 +8,8 @@ on:
       - run_ithome.py
       - .github/workflows/ithome_rss.yml
   schedule:
-    # Beijing time: 09:15, 12:15, 18:15.
-    - cron: '15 1,4,10 * * *'
+    # Beijing time (UTC+8): daily at 09:00 and 22:00.
+    - cron: '0 1,14 * * *'
 
 permissions:
   contents: write
