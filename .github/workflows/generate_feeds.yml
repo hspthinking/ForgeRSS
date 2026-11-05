@@ -4,10 +4,6 @@
 name: Generate Feeds
 
 on:
-  schedule:
-    # Default: every 6 hours (0:00, 6:00, 12:00, 18:00 UTC)
-    # Can be overridden by setting CRON_SCHEDULE repository variable
-    - cron: '0 */6 * * *'
   workflow_dispatch:
     inputs:
       full_refresh:
@@ -20,6 +16,7 @@ on:
         required: false
         default: '50'
         type: string
+
 
 env:
   MAX_ARTICLES: ${{ vars.MAX_ARTICLES || '50' }}
