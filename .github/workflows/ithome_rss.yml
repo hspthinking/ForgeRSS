@@ -1,15 +1,8 @@
 name: IT early-news RSS
 
 on:
+  # ChatGPT now runs the HTTP adapter directly. Manual execution is kept for diagnostics.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - run_ithome.py
-      - .github/workflows/ithome_rss.yml
-  schedule:
-    # Beijing time (UTC+8): daily at 09:00 and 22:00.
-    - cron: '0 1,14 * * *'
 
 permissions:
   contents: write
